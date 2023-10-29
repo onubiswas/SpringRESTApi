@@ -14,12 +14,15 @@ java {
 repositories {
 	mavenCentral()
 }
-
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-}
 
+	implementation 'org.springframework.data:spring-data-jdbc'
+
+	// testImplementation - This tells Spring Boot to make the H2 database available only when running tests.
+	testImplementation 'com.h2database:h2'
+}
 tasks.named('test') {
 	useJUnitPlatform()
 }

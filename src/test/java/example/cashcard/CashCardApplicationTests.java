@@ -19,18 +19,22 @@ class CashCardApplicationTests {
 	@Test
 	void shouldReturnACashCardWhenDataIsSaved() {
 		ResponseEntity<String> response = restTemplate.getForEntity("/cashcards/99", String.class);
-//		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+		DocumentContext documentContext = JsonPath.parse(response.getBody());
+		Number id = documentContext.read("$.id");
+		assertThat(id).isEqualTo(99);
+
+		Double amount = documentContext.read("$.amount");
+		assertThat(amount).isEqualTo(123.45);
+	}
+
+	@Test
+	void shouldNotReturnACashCardWithAnUnknownId() {
+		ResponseEntity<String> response = restTemplate.getForEntity("/cashcards/9", String.class);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 		assertThat(response.getBody()).isBlank();
-
-//		DocumentContext documentContext = JsonPath.parse(response.getBody()); //This converts the response String into a JSON-aware object with lots of helper methods.
-//		Number id = documentContext.read("$.id");
-//		assertThat(id).isEqualTo(1000);
-//
-//		Double amount = documentContext.read("$.amount");
-//		assertThat(amount).isEqualTo(123.45);
-
 	}
 
 }
