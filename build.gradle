@@ -19,6 +19,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
 	implementation 'org.springframework.data:spring-data-jdbc'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 
 	// testImplementation - This tells Spring Boot to make the H2 database available only when running tests.
 	testImplementation 'com.h2database:h2'
