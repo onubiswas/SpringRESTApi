@@ -21,7 +21,7 @@ class SecurityConfig {
         http
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/cashcards/**")
-                        .authenticated())
+                        .hasRole("CARD-OWNER")) // enable RBAC: Replace the .authenticated() call with the hasRole(...) call.
                 .csrf(csrf -> csrf.disable())
                 .httpBasic(Customizer.withDefaults());
         return http.build();
@@ -37,8 +37,13 @@ class SecurityConfig {
         UserDetails sarah = users
                 .username("sarah1")
                 .password(passwordEncoder.encode("abc123"))
-                .roles() // No roles for now
+                .roles("CARD-OWNER") // new role
                 .build();
-        return new InMemoryUserDetailsManager(sarah);
+        UserDetails hankOwnsNoCards = users
+                .username("hank-owns-no-cards")
+                .password(passwordEncoder.encode("qrs456"))
+                .roles("NON-OWNER") // new role
+                .build();
+        return new InMemoryUserDetailsManager(sarah, hankOwnsNoCards);
     }
 }
