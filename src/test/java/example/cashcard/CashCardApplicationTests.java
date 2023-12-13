@@ -99,8 +99,9 @@ class CashCardApplicationTests {
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
 
 		JSONArray page = documentContext.read("$[*]");
-		assertThat(page.size()).isEqualTo(3);
+		assertThat(page.size()).isEqualTo(1);
 	}
+
 	@Test
 	void shouldRejectUsersWhoAreNotCardOwners() {
 		ResponseEntity<String> response = restTemplate

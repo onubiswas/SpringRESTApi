@@ -1,0 +1,96 @@
+diff --git a/src/main/java/example/cashcard/CashCardController.java b/src/main/java/example/cashcard/CashCardController.java
+index 1f392cd..77d6a6c 100644
+--- a/src/main/java/example/cashcard/CashCardController.java
++++ b/src/main/java/example/cashcard/CashCardController.java
+@@ -1,12 +1,15 @@
+ package example.cashcard;
+ 
+ import org.springframework.data.domain.PageRequest;
++import org.springframework.data.domain.Pageable;
+ import org.springframework.http.HttpStatus;
+ import org.springframework.http.ResponseEntity;
+ import org.springframework.web.bind.annotation.*;
+ import org.springframework.web.util.UriComponentsBuilder;
+ 
+ import java.net.URI;
++import java.security.Principal;
++import java.util.List;
+ import java.util.Optional;
+ 
+ @RestController
+@@ -19,8 +22,8 @@ public class CashCardController {
+     }
+ 
+     @GetMapping("/{requestedId}")
+-    public ResponseEntity<CashCard> findById(@PathVariable Long requestedId) {
+-        Optional<CashCard> cashCardOptional = cashCardRepository.findById(requestedId);
++    public ResponseEntity<CashCard> findById(@PathVariable Long requestedId, Principal principal) {
++        Optional<CashCard> cashCardOptional = Optional.ofNullable(cashCardRepository.findByIdAndOwner(requestedId, principal.getName()));
+         if (cashCardOptional.isPresent()) {
+             return ResponseEntity.ok(cashCardOptional.get());
+         } else {
+@@ -28,6 +31,7 @@ public class CashCardController {
+         }
+     }
+ 
++
+     @PostMapping
+     private ResponseEntity<Void> createCashCard(@RequestBody CashCard newCashCardRequest, UriComponentsBuilder ucb) {
+         CashCard savedCashCard = cashCardRepository.save(newCashCardRequest);
+@@ -40,11 +44,10 @@ public class CashCardController {
+                 .created(locationOfNewCashCard)
+                 .build();
+     }
++
+     @GetMapping
+     private ResponseEntity<Iterable<CashCard>> findAll() {
+         return ResponseEntity.ok(cashCardRepository.findAll());
+     }
+ 
+-
+-
+ }
+diff --git a/src/main/java/example/cashcard/CashCardRepository.java b/src/main/java/example/cashcard/CashCardRepository.java
+index 396f853..635268f 100644
+--- a/src/main/java/example/cashcard/CashCardRepository.java
++++ b/src/main/java/example/cashcard/CashCardRepository.java
+@@ -1,7 +1,11 @@
+ package example.cashcard;
+ 
++import org.springframework.data.domain.Page;
++import org.springframework.data.domain.PageRequest;
+ import org.springframework.data.repository.CrudRepository;
+-
++import org.springframework.data.repository.PagingAndSortingRepository;
+ 
+ public interface CashCardRepository extends CrudRepository<CashCard, Long> {
++    CashCard findByIdAndOwner(Long id, String owner);
++    CashCard findByxOwner(String owner);
+ }
+diff --git a/src/test/java/example/cashcard/CashCardApplicationTests.java b/src/test/java/example/cashcard/CashCardApplicationTests.java
+index ca1e856..ea503af 100644
+--- a/src/test/java/example/cashcard/CashCardApplicationTests.java
++++ b/src/test/java/example/cashcard/CashCardApplicationTests.java
+@@ -108,4 +108,11 @@ class CashCardApplicationTests {
+ 				.getForEntity("/cashcards/99", String.class);
+ 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+ 	}
++	@Test
++	void shouldNotAllowAccessToCashCardsTheyDoNotOwn() {
++		ResponseEntity<String> response = restTemplate
++				.withBasicAuth("sarah1", "abc123")
++				.getForEntity("/cashcards/102", String.class); // kumar2's data
++		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
++	}
+ }
+\ No newline at end of file
+diff --git a/src/test/resources/data.sql b/src/test/resources/data.sql
+index 75c702d..f1ab8ff 100644
+--- a/src/test/resources/data.sql
++++ b/src/test/resources/data.sql
+@@ -1,3 +1,4 @@
+ INSERT INTO CASH_CARD(ID, AMOUNT, OWNER) VALUES (99, 123.45, 'sarah1');
+ INSERT INTO CASH_CARD(ID, AMOUNT, OWNER) VALUES (100, 1.00, 'sarah1');
+ INSERT INTO CASH_CARD(ID, AMOUNT, OWNER) VALUES (101, 150.00, 'sarah1');
++INSERT INTO CASH_CARD(ID, AMOUNT, OWNER) VALUES (102, 200.00, 'kumar2');
+\ No newline at end of file
