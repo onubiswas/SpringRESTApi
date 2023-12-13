@@ -109,4 +109,19 @@ class CashCardApplicationTests {
 				.getForEntity("/cashcards/99", String.class);
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 	}
+
+	@Test
+	void shouldReturnASortedPageOfCashCards() {
+		ResponseEntity<String> response = restTemplate
+				.withBasicAuth("sarah1", "abc123")
+				.getForEntity("/cashcards?page=0&size=1&sort=amount,desc", String.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+		DocumentContext documentContext = JsonPath.parse(response.getBody());
+		JSONArray read = documentContext.read("$[*]");
+		assertThat(read.size()).isEqualTo(1);
+
+		double amount = documentContext.read("$[0].amount");
+		assertThat(amount).isEqualTo(150.00);
+	}
 }
