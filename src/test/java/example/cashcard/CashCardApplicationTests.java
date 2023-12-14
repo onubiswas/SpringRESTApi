@@ -126,6 +126,7 @@ class CashCardApplicationTests {
 	}
 
 	@Test
+
 	void shouldReturnASortedPageOfCashCardsWithNoParametersAndUseDefaultValues() {
 		ResponseEntity<String> response = restTemplate
 				.withBasicAuth("sarah1", "abc123")
