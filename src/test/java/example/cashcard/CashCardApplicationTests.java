@@ -11,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+
 import java.net.URI;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -140,5 +143,26 @@ class CashCardApplicationTests {
 
 		JSONArray amounts = documentContext.read("$..amount");
 		assertThat(amounts).containsExactly(1.00, 123.45, 150.00);
+	}
+
+	@Test
+	@DirtiesContext
+	void shouldUpdateAnExistingCashCard() {
+		CashCard cashCardUpdate = new CashCard(null, 19.99, null);
+		HttpEntity<CashCard> request = new HttpEntity<>(cashCardUpdate);
+		ResponseEntity<Void> response = restTemplate
+				.withBasicAuth("sarah1", "abc123")
+				.exchange("/cashcards/99", HttpMethod.PUT, request, Void.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+		ResponseEntity<String> getResponse = restTemplate
+				.withBasicAuth("sarah1", "abc123")
+				.getForEntity("/cashcards/99", String.class);
+		assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+		DocumentContext documentContext = JsonPath.parse(getResponse.getBody());
+		Number id = documentContext.read("$.id");
+		Double amount = documentContext.read("$.amount");
+		assertThat(id).isEqualTo(99);
+		assertThat(amount).isEqualTo(19.99);
 	}
 }
